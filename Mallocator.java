@@ -3,75 +3,117 @@ import java.util.Scanner;
 
 public class Mallocator {
 
-    /********************* 
-    **********************
-      FirstFit Algorithm
-    **********************
-    **********************/
+    /*********************
+     **********************
+     * FirstFit Algorithm
+     **********************
+     **********************/
 
-    public static String firstFit(int[] blockSize, int m, int[] processSize, int n)
-    {
-        int[] allocation = new int[n];
+    public static String firstFit(int[] blockStart, int[] blockSizes, int blocks, int[] processSizes, int processes) {
+        // Create local empty arrays
+        int[] b = new int[blockSizes.length];
+        int[] p = new int[processSizes.length];
+
+        // Copy values from global blockSizes to local array b
+        for (int i = 0; i < blockSizes.length; i++) {
+            b[i] = blockSizes[i];
+        }
+
+        // Copy values from global processSizes to local array p
+        for (int i = 0; i < processSizes.length; i++) {
+            p[i] = processSizes[i];
+        }
+
+        int[] allocation = new int[processes];
 
         // Declare base case of empty memory allocation blocks
         for (int i = 0; i < allocation.length; i++)
             allocation[i] = -1;
 
         // Iterate through processes, look for a suitable block, and allocate if applicable
-        for (int i = 0; i < n; i++)
-        {
-            for (int j = 0; j < m; j++)
-            {
-                if (blockSize[j] >= processSize[i])
-                {
+        for (int i = 0; i < processes; i++) {
+            for (int j = 0; j < blocks; j++) {
+                if (b[j] >= p[i]) {
                     allocation[i] = j;
 
-                    blockSize[j] -= processSize[i];
+                    b[j] -= p[i];
 
                     break;
                 }
             }
         }
 
-        String firstOutput = ""; 
+        String firstOutput = "";
 
-        firstOutput += "\nProcess ID\tProcess Size\tBlock\n";
-        for (int i = 0; i < n; i++)
-        {
-            firstOutput += "" + (i + 1) + "\t\t" + processSize[i] + "\t\t";
-            if (allocation[i] != -1)
-                firstOutput += allocation[i] + 1;
-            else
-                firstOutput += "Not allocated";
-            firstOutput += "\n";
+        for (int i = 0; i < b.length; i++) {
+
+            // Set block at index i equal to its address start
+            b[i] = blockStart[i];
+
+            for (int j = 0; j < allocation.length; j++) {
+                if (allocation[j] == i) {
+                    firstOutput += b[i] + " " + (b[i] + p[j]) + " " + (j + 1) + "\n";
+                    b[i] += p[j];
+                }
+            }
         }
 
-        return firstOutput;
+        String notAllocated = "-";
+
+        // Iterate through allocation array to append any unallocated processes to notAllocated
+        for (int i = 0; i < allocation.length; i++) {
+            if (allocation[i] == -1) {
+                if (notAllocated.length() == 1) {
+                    notAllocated += (i + 1);
+                } else {
+                    notAllocated += "," + (i + 1);
+                }
+            }
+        }
+        
+        // If previous loop didn't detect any unallocated processes, append 0 to notAllocated
+        if (notAllocated.length() == 1) {
+            notAllocated += 0;
+        }
+
+        return firstOutput + notAllocated;
     }
 
-    /******************** 
-    *********************
-      BestFit Algorithm
-    *********************
-    *********************/
+    /********************
+     *********************
+     * BestFit Algorithm
+     *********************
+     *********************/
 
-    public static String bestFit(int[] blockSize, int m, int[] processSize, int n)
-    {
-        int[] allocation = new int[n];
+    public static String bestFit(int[] blockStart, int[] blockSizes, int blocks, int[] processSizes, int processes) {
+        // Create local empty arrays
+        int[] b = new int[blockSizes.length];
+        int[] p = new int[processSizes.length];
+
+        // Copy values from global blockSizes to local array b
+        for (int i = 0; i < blockSizes.length; i++) {
+            b[i] = blockSizes[i];
+        }
+
+        // Copy values from global processSizes to local array p
+        for (int i = 0; i < processSizes.length; i++) {
+            p[i] = processSizes[i];
+        }
+
+        int[] allocation = new int[processes];
 
         // Declare base case of empty memory allocation blocks
         for (int i = 0; i < allocation.length; i++)
             allocation[i] = -1;
 
         // Iterate through processes, look for a suitable block, and allocate if applicable
-        for (int i = 0; i < n; i++)
-        {
+        for (int i = 0; i < processes; i++) {
             int bestBlock = -1;
-            for (int j = 0; j < m; j++) {
-                if (blockSize[j] >= processSize[i]) {
-                    if (bestBlock == -1)
+            for (int j = 0; j < blocks; j++) {
+                if (b[j] >= p[i]) {
+                    if (bestBlock == -1 || b[bestBlock] > b[j])
                         bestBlock = j;
-                    else if (blockSize[bestBlock] > blockSize[j])
+                    else if (b[bestBlock] > b[j])
                         bestBlock = j;
                 }
             }
@@ -79,49 +121,84 @@ public class Mallocator {
             if (bestBlock != -1) {
                 allocation[i] = bestBlock;
 
-                blockSize[bestBlock] -= processSize[i];
+                b[bestBlock] -= p[i];
             }
         }
 
-        String bestOutput = ""; 
+        String bestOutput = "";
 
-        bestOutput += "\nProcess ID\tProcess Size\tBlock\n";
-        for (int i = 0; i < n; i++)
-        {
-            bestOutput += "" + (i + 1) + "\t\t" + processSize[i] + "\t\t";
-            if (allocation[i] != -1)
-                bestOutput += allocation[i] + 1;
-            else
-                bestOutput += "Not allocated";
-            bestOutput += "\n";
+        for (int i = 0; i < b.length; i++) {
+
+            // Set block at index i equal to its address start
+            b[i] = blockStart[i];
+
+            for (int j = 0; j < allocation.length; j++) {
+                if (allocation[j] == i) {
+
+                    bestOutput += b[i] + " " + (b[i] + p[j]) + " " + (j + 1) + "\n";
+                    b[i] += p[j];
+
+                }
+            }
         }
 
-        return bestOutput;
+        String notAllocated = "-";
+
+        // Iterate through allocation array to append any unallocated processes to notAllocated
+        for (int i = 0; i < allocation.length; i++) {
+            if (allocation[i] == -1) {
+                if (notAllocated.length() == 1) {
+                    notAllocated += (i + 1);
+                } else {
+                    notAllocated += "," + (i + 1);
+                }
+            }
+        }
+
+        // If previous loop didn't detect any unallocated processes, append 0 to notAllocated
+        if (notAllocated.length() == 1) {
+            notAllocated += 0;
+        }
+
+        return bestOutput + notAllocated;
     }
 
     /*********************
-    **********************
-      WorstFit Algorithm
-    **********************
-    **********************/
+     **********************
+     * WorstFit Algorithm
+     **********************
+     **********************/
 
-    public static String worstFit(int[] blockSize, int m, int[] processSize, int n)
-    {
-        int[] allocation = new int[n];
+    public static String worstFit(int[] blockStart, int[] blockSizes, int blocks, int[] processSizes, int processes) {
+        // Create local empty arrays
+        int[] b = new int[blockSizes.length];
+        int[] p = new int[processSizes.length];
+
+        // Copy values from global blockSizes to local array b
+        for (int i = 0; i < blockSizes.length; i++) {
+            b[i] = blockSizes[i];
+        }
+
+        // Copy values from global processSizes to local array p
+        for (int i = 0; i < processSizes.length; i++) {
+            p[i] = processSizes[i];
+        }
+
+        int[] allocation = new int[processes];
 
         // Declare base case of empty memory allocation blocks
         for (int i = 0; i < allocation.length; i++)
             allocation[i] = -1;
 
-        // Iterate through processes, look for a suitable block, and allocate if applicable
-        for (int i = 0; i < n; i++)
-        {
+        // Iterate through processes, look for a suitable block, and allocate if
+        // applicable
+        for (int i = 0; i < processes; i++) {
             int worstBlock = -1;
-            for (int j = 0; j < m; j++) {
-                if (blockSize[j] >= processSize[i]) {
+            for (int j = 0; j < blocks; j++) {
+                if (b[j] >= p[i]) {
                     if (worstBlock == -1)
                         worstBlock = j;
-                    else if (blockSize[worstBlock] < blockSize[j])
+                    else if (b[worstBlock] < b[j])
                         worstBlock = j;
                 }
             }
@@ -129,90 +206,113 @@ public class Mallocator {
             if (worstBlock != -1) {
                 allocation[i] = worstBlock;
 
-                blockSize[worstBlock] -= processSize[i];
+                b[worstBlock] -= p[i];
             }
         }
 
-        String worstOutput = ""; 
+        String worstOutput = "";
 
-        worstOutput += "\nProcess ID\tProcess Size\tBlock\n";
-        for (int i = 0; i < n; i++)
-        {
-            worstOutput += "" + (i + 1) + "\t\t" + processSize[i] + "\t\t";
-            if (allocation[i] != -1)
-                worstOutput += allocation[i] + 1;
-            else
-                worstOutput += "Not allocated";
-            worstOutput += "\n";
+        for (int i = 0; i < b.length; i++) {
+
+            // Set block at index i equal to its address start
+            b[i] = blockStart[i];
+
+            for (int j = 0; j < allocation.length; j++) {
+                if (allocation[j] == i) {
+
+                    worstOutput += b[i] + " " + (b[i] + p[j]) + " " + (j + 1) + "\n";
+                    b[i] += p[j];
+
+                }
+            }
         }
 
-        return worstOutput;
+        String notAllocated = "-";
+
+        // Iterate through allocation array to append any unallocated processes to notAllocated
+        for (int i = 0; i < allocation.length; i++) {
+            if (allocation[i] == -1) {
+                if (notAllocated.length() == 1) {
+                    notAllocated += (i + 1);
+                } else {
+                    notAllocated += "," + (i + 1);
+                }
+            }
+        }
+
+        // If previous loop didn't detect any unallocated processes, append 0 to notAllocated
+        if (notAllocated.length() == 1) {
+            notAllocated += 0;
+        }
+
+        return worstOutput + notAllocated;
     }
 
     /*********************
-    **********************
-      Read/Write Drivers
-    **********************
-    **********************/
+     **********************
+     * Read/Write Drivers
+     **********************
+     **********************/
 
     public static void main(String[] args) throws IOException {
 
-        int[] blockSize = {100, 200, 300, 400, 500, 600};
-        int[] processSize = {215, 280, 473, 503, 123};
-        int m = blockSize.length;
-        int n = processSize.length;
+        // Declare scanners to read in data files
+        Scanner memoryScanner = new Scanner(new FileReader("Minput.data"));
+        Scanner processScanner = new Scanner(new FileReader("Pinput.data"));
 
-        // Read memory input data
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader("Pinput.data"));
-            String mLine;
-            String mLine2[] = mLine.split("\\s");
-            
-            while((mLine = reader.readLine()) != null)
-                System.out.println(mLine);
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        // Set the blockSizes array size from the first integer in Minput.data
+        int blocks = memoryScanner.nextInt();
+        int[] blockSizes = new int[blocks];
+
+        // Set the blockStart array
+        int[] blockStart = new int[blocks];
+
+        // Add elements to blockSizes array from Minput.data
+        for (int i = 0; i < blocks; i++) {
+            int addressStart = memoryScanner.nextInt();
+            int addressEnd = memoryScanner.nextInt();
+            int blockSize = addressEnd - addressStart;
+            blockSizes[i] = blockSize;
+            blockStart[i] = addressStart;
+            System.out.println("The address start for block size " + blockSizes[i] + " is " + addressStart);
         }
 
+        // Set the processSizes array size from the first integer in Pinput.data
+        int processes = processScanner.nextInt();
+        int[] processSizes = new int[processes];
 
-        // Read process input data
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader("Pinput.data"));
-            String pLine;
-            while((pLine = reader.readLine()) != null)
-                System.out.println(pLine);
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        // Add elements to the processSizes array from Pinput.data
+        for (int i = 0; i < processes; i++) {
+            int processID = processScanner.nextInt();
+            int processSize = processScanner.nextInt();
+            processSizes[i] = processSize;
         }
 
         // Write FirstFit output
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter("FFOutput.data"));
-            writer.write((firstFit(blockSize, m, processSize, n)));
+            writer.write((firstFit(blockStart, blockSizes, blocks, processSizes, processes)));
             writer.close();
-        }   catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
         // Write BestFit output
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter("BFOutput.data"));
-            writer.write((bestFit(blockSize, m, processSize, n)));
+            writer.write((bestFit(blockStart, blockSizes, blocks, processSizes, processes)));
             writer.close();
-        }   catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
         // Write WorstFit output
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter("WFOutput.data"));
-            writer.write((worstFit(blockSize, m, processSize, n)));
+            writer.write((worstFit(blockStart, blockSizes, blocks, processSizes, processes)));
             writer.close();
-        }   catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 }
