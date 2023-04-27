@@ -70,7 +70,7 @@ public class Mallocator {
                 }
             }
         }
-        
+
         // If previous loop didn't detect any unallocated processes, append 0 to notAllocated
         if (notAllocated.length() == 1) {
             notAllocated += 0;
@@ -274,7 +274,6 @@ public class Mallocator {
             int blockSize = addressEnd - addressStart;
             blockSizes[i] = blockSize;
             blockStart[i] = addressStart;
-            System.out.println("The address start for block size " + blockSizes[i] + " is " + addressStart);
         }
 
         // Set the processSizes array size from the first integer in Pinput.data
@@ -292,6 +291,7 @@ public class Mallocator {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter("FFOutput.data"));
             writer.write((firstFit(blockStart, blockSizes, blocks, processSizes, processes)));
+            System.out.println("Successfully wrote First Fit to FFOutput.data!");
             writer.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -301,6 +301,7 @@ public class Mallocator {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter("BFOutput.data"));
             writer.write((bestFit(blockStart, blockSizes, blocks, processSizes, processes)));
+            System.out.println("Successfully wrote Best Fit to BFOutput.data!");
             writer.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -310,6 +311,7 @@ public class Mallocator {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter("WFOutput.data"));
             writer.write((worstFit(blockStart, blockSizes, blocks, processSizes, processes)));
+            System.out.println("Successfully wrote Worst Fit to WFOutput.data!");
             writer.close();
         } catch (IOException e) {
             e.printStackTrace();
